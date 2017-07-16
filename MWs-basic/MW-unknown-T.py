@@ -91,28 +91,6 @@ if __name__ == '__main__':
     NumPl = input("No. of players: ")
     NumPl = int(NumPl) #no. of players
     #print("Time horizon entered : ", T, ". No. of actions: ", N, ". No. of players: ", NumPl)
-    '''epsilon = math.sqrt(math.log(N) / T) #the value of learning parameter for the no regret case under known T
-    print("Value of learning parameter: ", epsilon)
-    n = np.ones((N,T), dtype=float)
-    wt = sum(n[:,1])
-    print(n)
-    print(n[:,1]/wt)
-    val = n[:,1]
-    prob = n[:,1]/wt
-    distrib = rv_discrete(values=(range(len(val)), prob))
-    print(distrib.rvs(size=2))
-    n[0,1] = 1
-    n[1,1] = 3
-    n[2,1] = 5
-    print(n)
-    wt = sum(n[:,1])
-    print(n[:,1]/wt)
-    val = n[:,1]
-    prob = n[:,1]/wt
-    print(prob)
-    distrib = rv_discrete(values=(range(len(val)), prob))
-    print(distrib.rvs(size=1))
-    #print(sum(n[1]))'''
     #initialize the environment variable
     env = Environment(NumPl, N)
     #now, initialize the players in a loop
