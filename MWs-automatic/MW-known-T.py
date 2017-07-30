@@ -32,12 +32,13 @@ class Environment: #the class that will be simulating the adversary in terms of 
                 expectedCost = this.costs[playerID][pickedStrategy][0]
             else:
                 for i in range(0, totalScenarios): #each scenario encoding a particular representation of opponents' strategies
-                    cost = self.costs[playerID][pickedStrategy][i] #prompt the user for cost against a config
+                    cost = self.costs[playerID][pickedStrategy][0][i] #prompt the user for cost against a config
                     expectedCost = expectedCost + cost #keep the sum count
                 expectedCost = (expectedCost * 1.0) / (totalScenarios * 1.0) #to get the expectation
         finally:
             logging.debug("Released a lock for for player = %d" % playerID)
             self.lock.release()
+            print("Expected Cost = %f" % expectedCost)
             return expectedCost #this is the cost needed by player who picked the strategy
 
 class Player:

@@ -30,17 +30,31 @@ class Environment: #the class that will be simulating the adversary in terms of 
             print("Player %d has executed strategy number %d" % (playerID, pickedStrategy))
             totalScenarios = (self.numPlayers - 1) * self.N #the different scenarios of strategies per remaining players
             # that could happen
+            #print("Total Scenarios = %d" %totalScenarios)
+            '''print("Printing cost vector inside environment......")
+            print(self.costs)
+            print(self.costs[1][1][1])'''
             expectedCost = 0
             if totalScenarios == 0:
-                expectedCost = this.costs[playerID][pickedStrategy][0]
+                expectedCost = self.costs[playerID][pickedStrategy][0]
             else:
+                #print(self.costs[playerID][pickedStrategy])
                 for i in range(0, totalScenarios): #each scenario encoding a particular representation of opponents' strategies
-                    cost = self.costs[playerID][pickedStrategy][i] #prompt the user for cost against a config
+                    '''print("Before cost")
+                    print("Player id = %d" %playerID)
+                    print("Picked strategy = %d" % pickedStrategy)
+                    print("i = %d" %i)
+                    print(self.costs[playerID][pickedStrategy][i])
+                    print(self.costs[playerID][pickedStrategy][i][i])'''
+                    #print(self.costs[playerID][pickedStrategy][0][i])
+                    cost = self.costs[playerID][pickedStrategy][0][i] #cost aganist a config
+                    #print("After cost = %f" %cost)
                     expectedCost = expectedCost + cost #keep the sum count
                 expectedCost = (expectedCost * 1.0) / (totalScenarios * 1.0) #to get the expectation
         finally:
             logging.debug("Released a lock for for player = %d" % playerID)
             self.lock.release()
+            print("Expected Cost = %f" %expectedCost)
             return expectedCost #this is the cost needed by player who picked the strategy
 
 class Player:
@@ -73,8 +87,16 @@ class Player:
         Tbar = power(t) #find the highest higher of 2 greater than t, which is used for finding the epsilon
         epsilon = math.sqrt(math.log(self.N) / Tbar) #the value of learning parameter for the no regret case
         # under unknown T
+        '''try:
+            t = self.env.generateRewards(playerID, pickedStrategy)
+            print("after calling generate rewards.....")
+            print("PlayerId = %d, picked stretegy = %d" %playerID %pickedStrategy)
+            print("The expected cost returned is : %d" % t)
+        except TypeError as te:
+            print("Picked up a TypeError.!")'''
         self.weight[pickedStrategy] = self.weight[pickedStrategy] * math.pow((1 - epsilon),
-                                                                                       self.env.generateRewards(playerID, pickedStrategy))
+                                                                             self.env.generateRewards(playerID,
+                                                                                                      pickedStrategy))
         #the multiplicative update formula
 
 def play(players, playerID, t): #to play each game at each time step
@@ -113,9 +135,11 @@ if __name__ == '__main__':
                 # print(tmp[curr])
                 # print("Str format %s" % tmp[curr])
                 costs[i][j][curr] = float(tmp[curr])
-                # print(costs[i][j][curr])
+                #print(costs[i][j][curr])
                 curr = curr + 1
-
+    '''print("Printing the costs vector.....")
+    print(costs)
+    print(costs[1][1][1])'''
     #initialize the environment variable
     env = Environment(NumPl, N, costs)
     #now, initialize the players in a loop
@@ -125,8 +149,7 @@ if __name__ == '__main__':
 
     nextTime = True  # this will keep track of the number of time steps in which to keep playing the game
     currentTime = 1
-    while (
-        nextTime is True):  # basically at each time step each player executes a new thread of execution for picking a strategy
+    while (nextTime is True):  # basically at each time step each player executes a new thread of execution for picking a strategy
         # and then the process of generating rewards takes place within a lock so that only one player at any one point
         # in time is executing the environment variable for generating rewards
         for j in range(NumPl):  # for each of the players, threads will be generated individually per time step
