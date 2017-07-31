@@ -48,10 +48,6 @@ class Player:
         self.weight = np.ones((self.N), dtype=float) #each player will have their cost vector indexed acc to the time instance
         #this has been initialized to 1.0 for all, but we really only care about for t=1 for all actions acc to the
         #algorithm
-        #self.cost = np.zeros(self.N, self.T) #the cost vector for each individual player that will be getting filled
-        #for the time t after they have chosen their action, being updated upon by the environment/adversary
-        #self.epsilon = math.sqrt(math.log(self.N) / self.T) #the value of learning parameter for the no regret case
-        # under known T
         self.env = env #the environment object that all players will play under
 
     def pickStrategy(self, t): #this will be called for the t+1th time instance after the player has picked a strategy
@@ -75,6 +71,8 @@ class Player:
         self.weight[pickedStrategy] = self.weight[pickedStrategy] * math.pow((1 - epsilon),
                                                                                        self.env.generateRewards(playerID, pickedStrategy))
         #the multiplicative update formula
+        print("Played ID: %d " % playerID)
+        print(self.weight)
 
 def play(players, playerID, t): #to play each game at each time step
     strategyPicked = players[playerID].pickStrategy(t) #pick the strategy
@@ -84,19 +82,16 @@ def play(players, playerID, t): #to play each game at each time step
 
 
 if __name__ == '__main__':
-    '''Tstr = input("Enter a time horizon: ")
-    T = int(Tstr) #the total number of time divisions, T'''
     Nstr = input("Enter number of actions/strategies of user: ")
     N = int(Nstr) #total no. of actions
     NumPl = input("No. of players: ")
     NumPl = int(NumPl) #no. of players
-    #print("Time horizon entered : ", T, ". No. of actions: ", N, ". No. of players: ", NumPl)
     #initialize the environment variable
     env = Environment(NumPl, N)
     #now, initialize the players in a loop
     players = [] #the list of players
     for i in range(NumPl): #for each player
-        players.append(Player(NumPl, env)) #each player has been initialized
+        players.append(Player(N, env)) #each player has been initialized
 
     nextTime = True #this will keep track of the number of time steps in which to keep playing the game
     currentTime = 1

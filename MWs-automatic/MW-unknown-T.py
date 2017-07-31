@@ -30,31 +30,19 @@ class Environment: #the class that will be simulating the adversary in terms of 
             print("Player %d has executed strategy number %d" % (playerID, pickedStrategy))
             totalScenarios = (self.numPlayers - 1) * self.N #the different scenarios of strategies per remaining players
             # that could happen
-            #print("Total Scenarios = %d" %totalScenarios)
-            '''print("Printing cost vector inside environment......")
-            print(self.costs)
-            print(self.costs[1][1][1])'''
             expectedCost = 0
             if totalScenarios == 0:
-                expectedCost = self.costs[playerID][pickedStrategy][0]
+                expectedCost = float(self.costs[pickedStrategy])
             else:
                 #print(self.costs[playerID][pickedStrategy])
                 for i in range(0, totalScenarios): #each scenario encoding a particular representation of opponents' strategies
-                    '''print("Before cost")
-                    print("Player id = %d" %playerID)
-                    print("Picked strategy = %d" % pickedStrategy)
-                    print("i = %d" %i)
-                    print(self.costs[playerID][pickedStrategy][i])
-                    print(self.costs[playerID][pickedStrategy][i][i])'''
-                    #print(self.costs[playerID][pickedStrategy][0][i])
                     cost = self.costs[playerID][pickedStrategy][0][i] #cost aganist a config
-                    #print("After cost = %f" %cost)
                     expectedCost = expectedCost + cost #keep the sum count
                 expectedCost = (expectedCost * 1.0) / (totalScenarios * 1.0) #to get the expectation
         finally:
             logging.debug("Released a lock for for player = %d" % playerID)
             self.lock.release()
-            print("Expected Cost = %f" %expectedCost)
+            print("Expected cost = %f" % expectedCost)
             return expectedCost #this is the cost needed by player who picked the strategy
 
 class Player:
@@ -63,11 +51,10 @@ class Player:
         self.weight = np.ones((self.N), dtype=float) #each player will have their cost vector indexed acc to the time instance
         #this has been initialized to 1.0 for all, but we really only care about for t=1 for all actions acc to the
         #algorithm
-        #self.cost = np.zeros(self.N, self.T) #the cost vector for each individual player that will be getting filled
-        #for the time t after they have chosen their action, being updated upon by the environment/adversary
-        #self.epsilon = math.sqrt(math.log(self.N) / self.T) #the value of learning parameter for the no regret case
-        # under known T
         self.env = env #the environment object that all players will play under
+
+        print("in the beginning....")
+        print(self.weight)
 
     def pickStrategy(self, t): #this will be called for the t+1th time instance after the player has picked a strategy
         #acc to the weight matrix that existed at time t
@@ -87,16 +74,11 @@ class Player:
         Tbar = power(t) #find the highest higher of 2 greater than t, which is used for finding the epsilon
         epsilon = math.sqrt(math.log(self.N) / Tbar) #the value of learning parameter for the no regret case
         # under unknown T
-        '''try:
-            t = self.env.generateRewards(playerID, pickedStrategy)
-            print("after calling generate rewards.....")
-            print("PlayerId = %d, picked stretegy = %d" %playerID %pickedStrategy)
-            print("The expected cost returned is : %d" % t)
-        except TypeError as te:
-            print("Picked up a TypeError.!")'''
         self.weight[pickedStrategy] = self.weight[pickedStrategy] * math.pow((1 - epsilon),
                                                                              self.env.generateRewards(playerID,
                                                                                                       pickedStrategy))
+        print("Played ID: %d " %playerID)
+        print(self.weight)
         #the multiplicative update formula
 
 def play(players, playerID, t): #to play each game at each time step
@@ -110,9 +92,9 @@ if __name__ == '__main__':
     nof = raw_input("Enter name of file (rps/ct(.txt)) : ") #get the file depending on the game to be played that will
     #store all of the number of players/no of strategies/cost per strategy under different scenario
     fh = open(nof, 'r') #the file handler
-    NumPl = int(fh.readline()) # no. of players
+
     N = int(fh.readline())  # total no. of actions
-    #print("Time horizon entered : ", T, ". No. of actions: ", N, ". No. of players: ", NumPl)
+    NumPl = int(fh.readline())  # no. of players
 
     scenarios = (NumPl - 1) * N #how many scenarios per picked strategy per player
     playerCosts = [] #a list that will store all the costs of a player gotten from the input file
@@ -126,26 +108,24 @@ if __name__ == '__main__':
     #environment to index into the cost when a player picks a strategy
     for i in range(len(playerCosts)): #filling up the cost vector for the environment based on the list constructs
         for j in range(len(playerCosts[i])):
-            # print("curr = %d" %curr)
-            # print("player costs[i][j] : %s" % playerCosts[i][j])
             curr = 0 #to iterate over how many scenarios are there to index in properly
             tmp = playerCosts[i][j].split(" ")
             for k in range(scenarios):
-                # print(tmp)
-                # print(tmp[curr])
-                # print("Str format %s" % tmp[curr])
                 costs[i][j][curr] = float(tmp[curr])
-                #print(costs[i][j][curr])
                 curr = curr + 1
-    '''print("Printing the costs vector.....")
-    print(costs)
-    print(costs[1][1][1])'''
-    #initialize the environment variable
-    env = Environment(NumPl, N, costs)
+    if (NumPl == 1):
+        costs_single = np.zeros((N), dtype = float)
+        for i in range(N):
+            costs_single[i] = float(playerCosts[0][i]) #get the cost vector in a different format when single player setting for ease of
+        #access
+        # initialize the environment variable based on whether single or multi-player
+        env = Environment(NumPl, N, costs_single)
+    else:
+        env = Environment(NumPl, N, costs)
     #now, initialize the players in a loop
     players = [] #the list of players
     for i in range(NumPl): #for each player
-        players.append(Player(NumPl, env)) #each player has been initialized
+        players.append(Player(N, env)) #each player has been initialized
 
     nextTime = True  # this will keep track of the number of time steps in which to keep playing the game
     currentTime = 1
