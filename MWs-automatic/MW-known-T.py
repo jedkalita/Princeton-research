@@ -45,7 +45,7 @@ class Player:
     def __init__(self, T, N, env):
         self.T = T #to make the matrix
         self.N = N #the number of actions/strategies that the player has
-        self.weight = np.ones((self.N, self.T), dtype=float) #each player will have their cost vector indexed acc to the time instance
+        self.weight = np.ones((self.N), dtype=float) #each player will have their cost vector indexed acc to the time instance
         #this has been initialized to 1.0 for all, but we really only care about for t=1 for all actions acc to the
         #algorithm
         self.epsilon = math.sqrt(math.log(self.N) / self.T) #the value of learning parameter for the no regret case
@@ -54,11 +54,11 @@ class Player:
 
     def pickStrategy(self, t): #this will be called for the t+1th time instance after the player has picked a strategy
         #acc to the weight matrix that existed at time t
-        weighted_total = sum(self.weight[:, t - 1]) #get the weighted sum of all strategies of the player at time t - 1
+        weighted_total = sum(self.weight[:]) #get the weighted sum of all strategies of the player at time t - 1
         #the above goes in the denominator
-        probability = self.weight[:, t - 1] / weighted_total #get the probabilities for the individual weights to
+        probability = self.weight[:] / weighted_total #get the probabilities for the individual weights to
         #randomize over
-        values_over = self.weight[:, t - 1] #the values over which we will pick, essentially we only need the index
+        values_over = self.weight[:] #the values over which we will pick, essentially we only need the index
         #of the strategy, hence the range() function below
         distrib = rv_discrete(values = (range(len(values_over)), probability)) #generate the distribution
         return (distrib.rvs(size = 1)) #pick one randomized choice from the distribution created above and return, this
@@ -69,7 +69,7 @@ class Player:
         #change the weight of the pickedStrategy at time t for time t+1
         if t == self.T - 1: #the last time step
             return #just return
-        self.weight[pickedStrategy, t + 1] = self.weight[pickedStrategy, t] * math.pow((1 - self.epsilon),
+        self.weight[pickedStrategy] = self.weight[pickedStrategy] * math.pow((1 - self.epsilon),
                                                                                        self.env.generateRewards(playerID, pickedStrategy))
         #the multiplicative update formula
         print("Played ID: %d " % playerID)
