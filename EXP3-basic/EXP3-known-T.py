@@ -26,14 +26,18 @@ class Environment: #the class that will be simulating the adversary in terms of 
             print("Player %d has executed strategy number %d" % (playerID, pickedStrategy))
             totalScenarios = (self.numPlayers - 1) * N #the different scenarios of strategies per remaining players that could
             #happen
+            expectedProfit = 0
             if totalScenarios == 0:
-                profit = input("Single Player game. Enter profit for picked strategy above: ")
+                expectedProfit = input("Single Player game. Enter profit for picked strategy above: ")
             else:
-                profit = input("Enter the profit : ") #prompt the user for cost against a config
+                for i in range(0, totalScenarios):  # each scenario encoding a particular representation of opponents' strategies
+                    profit = input("Enter the profit for scenario: %d" % (i + 1))  # prompt the user for cost against a config
+                    expectedProfit = expectedProfit + profit  # keep the sum count
+                expectedProfit = (expectedProfit * 1.0) / (totalScenarios * 1.0)  # to get the expectation
         finally:
             logging.debug("Released a lock for for player = %d" % playerID)
             self.lock.release()
-            return profit #this is the cost needed by player who picked the strategy
+            return expectedProfit  # this is the cost needed by player who picked the strategy
 
 class Player:
     def __init__(self, T, N, env):
@@ -50,7 +54,16 @@ class Player:
         #acc to the weight matrix that existed at time t
         weighted_total = sum(self.weight[:]) #get the weighted sum of all strategies of the player at time t - 1
         #the above goes in the denominator
-        probability = ((1 - self.eta) * (self.weight[:] / weighted_total)) + (self.eta * (1 / self.N))
+        #print(self.weight)
+        #probability = ((1 - self.eta) * (self.weight[:] / weighted_total)) + ((self.eta * (1 / self.N)))
+        probability = np.zeros((self.N), dtype=float)
+        for i in range(len(probability)):
+            '''x = ((1 - self.eta) * (self.weight[i] / weighted_total))
+            print x
+            y = (self.eta / self.N)
+            print y'''
+            probability[i] = ((1 - self.eta) * (self.weight[i] / weighted_total)) + (self.eta / self.N)
+        #print(probability)
         #get the probabilities for the individual weights to randomize over
         values_over = self.weight[:] #the values over which we will pick, essentially we only need the index
         #of the strategy, hence the range() function below
@@ -67,7 +80,7 @@ class Player:
                                              math.exp(self.eta *
                                                       ((self.env.generateRewards(playerID, pickedStrategy))
                                                         / probability[pickedStrategy]) / self.N)
-        #the multiplicative update formula
+        #the EXP3 update formula
         print("Player ID: %d " % playerID)
         print(self.weight)
 
