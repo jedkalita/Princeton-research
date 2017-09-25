@@ -16,28 +16,26 @@ class Environment: #the class that will be simulating the adversary in terms of 
         self.numPlayers = numPlayers #no of players in the game
         self.N = N #no of strategies that each player has
 
-    def generateRewards(self, playerID, pickedStrategy): #generate the cost vector for player playerID
-    # who executed strategy pickedStrategy
+    def generateRewards(self, t, strategiesPicked): #generate the cost vector for all players
     #now, we have to literally calculate all of the possible permutations between other players and their strategies
-        logging.debug("Waiting for a lock for player = %d" % playerID)
-        self.lock.acquire()
+        logging.debug("About to generate rewards for time : %d" %t)
+
         try:
-            logging.debug("Acquired a lock for player = %d" % playerID)
-            print("Player %d has executed strategy number %d" % (playerID, pickedStrategy))
+            for j in range(strategiesPicked):
+                logging.debug("Player %d executed strategy %d" %j %(strategiesPicked[j]))
+
+
             totalScenarios = (self.numPlayers - 1) * N #the different scenarios of strategies per remaining players that could
             #happen
-            expectedCost = 0
+            cost = 0
             if totalScenarios == 0:
-                expectedCost = input("Single Player game. Enter cost for picked strategy above: ")
+                cost = input("Single Player game. Enter cost for picked strategy above: ") #single player game
             else:
-                for i in range(0, totalScenarios): #each scenario encoding a particular representation of opponents' strategies
-                    cost = input("Enter the cost for scenario: %d" % (i + 1)) #prompt the user for cost against a config
-                    expectedCost = expectedCost + cost #keep the sum count
-                expectedCost = (expectedCost * 1.0) / (totalScenarios * 1.0) #to get the expectation
+                cost = input("Enter the cost for all players: ") #prompt the user for cost against a config
         finally:
-            logging.debug("Released a lock for for player = %d" % playerID)
-            self.lock.release()
-            return expectedCost #this is the cost needed by player who picked the strategy
+            logging.debug("Finished generating rewards for time %d" %(t))
+
+            return cost #return the cost for all players
 
 class Player:
     def __init__(self, T, N, env):
@@ -50,7 +48,7 @@ class Player:
         # under known T
         self.env = env #the environment object that all players will play under
 
-    def pickStrategy(self, t): #this will be called for the t+1th time instance after the player has picked a strategy
+    def pickStrategy(self): #this will be called for the t+1th time instance after the player has picked a strategy
         #acc to the weight matrix that existed at time t
         weighted_total = sum(self.weight[:]) #get the weighted sum of all strategies of the player at time t - 1
         #the above goes in the denominator
@@ -73,11 +71,19 @@ class Player:
         print("Played ID: %d " % playerID)
         print(self.weight)
 
-def play(players, NumPl, t): #to play each game at each time step
-    strategyPicked = players[playerID].pickStrategy(t) #pick the strategy
-    #now, its time to change the weight of the picked strategy for the next time step by calling the environment's
-    #generate rewards within, which will be operated via a lock
-    players[playerID].changeWeight(strategyPicked, t, playerID)
+def play(players, playerID, strategiesPicked): #to play each game at each time step
+    strategyPicked = players[playerID].pickStrategy() #pick the strategy
+    strategiesPicked.append(strategyPicked) #for this iteration of time, per player strategy is put in a list
+    #now, based upon the combination of picked strategies the same loss will be applied to each individual player
+
+def changeWeights(players, playerID, cost_decided): #the function to change weights for each player
+    # first, encode the combination of strategies
+    # call an env variable that decides what this encoding yields in terms of costs for each player
+    cost_per_player = env.generateRewards(strategiesPicked)
+    # per player change weight
+    for i in range(NumPl):
+        players[i].changeWeight(cost_per_player, t, playerID)
+
 
 
 if __name__ == '__main__':
@@ -96,12 +102,27 @@ if __name__ == '__main__':
 
     for i in range(T): #at each time step, for each player, select an action and based on the scenario provided,
         #decide on the next action
-        t = threading.Thread(target=play, args=(players, NumPl, i))
-        t.start()
+        strategiesPicked = []  # a list to hold the individual strategies picked by each player
+        for j in range(NumPl):
+            t = threading.Thread(target=play, args=(players, j, strategiesPicked)) #first, pick a strategy
+            t.start()
+
+        #now, close all the threads
+        logging.debug("Waiting for all threads after picking strategies.")
+        main_thread = threading.currentThread()
+        for t in threading.enumerate():
+            if t is not main_thread:
+                t.join()
+
+        #now, call the environment variable to calculate the cost based on the combination
+        cost_decided = env.generateRewards(i, strategiesPicked)
+        #now, after all the players have  picked an individual strategy, decide on a cost for all of them
+        for j in range(NumPl):
+            t = threading.Thread(target=changeWeights, args=(players, j, cost_decided))
+            t.start()
 
         #now join all the threads before moving on to the next time step
-        logging.debug("Waiting for all threads.")
-        main_thread = threading.currentThread()
+        logging.debug("Waiting for all threads after finishing setting weights.")
         for t in threading.enumerate():
             if t is not main_thread:
                 t.join()
