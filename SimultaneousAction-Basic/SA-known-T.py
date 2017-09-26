@@ -68,7 +68,7 @@ def play(players, playerID, strategiesPicked): #to play each game at each time s
     strategiesPicked.append(strategyPicked) #for this iteration of time, per player strategy is put in a list
     #now, based upon the combination of picked strategies the same loss will be applied to each individual player
 
-def changeWeights(players, playerID, strategiesPicked, cost_decided): #the function to change weights for each player
+def changeWeights(players, playerID, strategiesPicked, cost_decided, t): #the function to change weights for each player
     players[playerID].changeWeight(cost_decided, t, strategiesPicked, playerID)
 
 
@@ -105,7 +105,7 @@ if __name__ == '__main__':
         cost_decided = env.generateRewards(i, strategiesPicked)
         #now, after all the players have  picked an individual strategy, decide on a cost for all of them
         for j in range(NumPl):
-            t = threading.Thread(target=changeWeights, args=(players, j, strategiesPicked, cost_decided))
+            t = threading.Thread(target=changeWeights, args=(players, j, strategiesPicked, cost_decided, i))
             t.start()
 
         #now join all the threads before moving on to the next time step
