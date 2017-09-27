@@ -46,7 +46,7 @@ class Player:
         self.weight = np.ones((self.N), dtype=float) #each player will have their cost vector indexed acc to the time instance
         #this has been initialized to 1.0 for all, but we really only care about for t=1 for all actions acc to the
         #algorithm
-        self.eta = 0.5 #the value of learning parameter between 0 and 1
+        self.eta = math.sqrt(math.log(self.N) * self.N / (2 * self.T)) #the value of learning parameter between 0 and 1
         # under known T
         self.env = env #the environment object that all players will play under
 
