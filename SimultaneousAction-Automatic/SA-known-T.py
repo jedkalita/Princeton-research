@@ -25,9 +25,11 @@ class Environment: #the class that will be simulating the adversary in terms of 
         #happen
 
         #now, decode from the strategies picked which index within the cost_scenarios to get the cost from
-        sum = 0
+        sum = int(0)
         for i in range(self.numPlayers):
-            sum = sum + math.pow(2, strategiesPicked[i])
+            sum = sum + (int(math.pow(self.N, i)) * strategiesPicked[i])
+        print("sum is : %d" % (sum))
+
 
         cost = self.cost_scenarios[sum] #get the cost
         logging.debug("Finished generating rewards for time %d" %(t))
@@ -90,7 +92,7 @@ if __name__ == '__main__':
     #now, read from the input file the associated costs
     cost_scenarios = []
     for i  in range(num_costs):
-        cost_scenarios.append(int(fh.readline())) #read each line
+        cost_scenarios.append(float(fh.readline())) #read each line
 
     env = Environment(NumPl, N, cost_scenarios) #create the environment object
     #now, initialize the players in a loop
