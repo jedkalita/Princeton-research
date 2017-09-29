@@ -45,14 +45,11 @@ class Environment: #the class that will be simulating the adversary in terms of 
             return expectedProfit #this is the cost needed by player who picked the strategy
 
 class Player:
-    def __init__(self, T, N, env):
-        self.T = T #to make the matrix
+    def __init__(self, N, env):
         self.N = N #the number of actions/strategies that the player has
         self.weight = np.ones((self.N), dtype=float) #each player will have their cost vector indexed acc to the time instance
         #this has been initialized to 1.0 for all, but we really only care about for t=1 for all actions acc to the
         #algorithm
-        self.eta = math.sqrt(math.log(self.N) * self.N / (2 * self.T)) #the value of learning parameter between 0 and 1
-        # under known T
         self.env = env #the environment object that all players will play under
 
     def pickStrategy(self, t): #this will be called for the t+1th time instance after the player has picked a strategy
@@ -96,8 +93,6 @@ def play(players, playerID, t): #to play each game at each time step
 
 
 if __name__ == '__main__':
-    Tstr = input("Enter a time horizon: ")
-    T = int(Tstr) #the total number of time divisions, T
     nof = raw_input("Enter name of file (rps/ct(.txt)) : ") #get the file depending on the game to be played that will
     #store all of the number of players/no of strategies/cost per strategy under different scenario
     fh = open(nof, 'r') #the file handler
@@ -135,7 +130,7 @@ if __name__ == '__main__':
     #now, initialize the players in a loop
     players = [] #the list of players
     for i in range(NumPl): #for each player
-        players.append(Player(T, N, env)) #each player has been initialized
+        players.append(Player(N, env)) #each player has been initialized
 
     nextTime = True  # this will keep track of the number of time steps in which to keep playing the game
     currentTime = 1
