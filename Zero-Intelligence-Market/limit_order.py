@@ -12,17 +12,22 @@ class LimitOrder:
         self.cancellation_time = cancellation_time #of type float
         self.order_size = order_size #units of numbers
         self.end_time = time_began + cancellation_time
-        print("A Limit Order created.")
+        #print("A Limit Order created.")
 
     def show_characteristics(self): #just for debugging purposes
         print("Limit Order id = %d, Order Size = %d, Time Began = %f, Cancellation Time = %f, End Time = %f"
               % (self.id, self.order_size, self.time_began, self.cancellation_time, self.end_time))
+
+    def __del__(self):
+        print("Deleted Limit Order %d" % self.id)
 
 
 if __name__ == "__main__":
     begin_time = time.time()
     lo1 = LimitOrder(1, time.time() - begin_time, 4.56, 3)
     lo1.show_characteristics()
+    del lo1
+    #lo1.show_characteristics()
 
 
 
