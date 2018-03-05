@@ -7,6 +7,8 @@ import logging
 import random
 import matplotlib.pyplot as plt
 from limit_order import *
+#import joystick as jk
+from LOB import *
 
 s = np.random.poisson(5, 1000000)
 #print(s)
@@ -66,8 +68,13 @@ mid_spread = (lowest_ask + highest_bid) / 2
 #print(begin_time)
 end_time = begin_time + 20 #build initial LOB for 20 seconds
 num_possible_orders_i = 2
-k = 0
-while(time.time() <= end_time):
+#k = 0
+curr_time = time.time()
+curr_time_from_beg = curr_time - begin_time
+lob = LimitOrderBook()
+id = 0
+while(curr_time <= end_time):
+    curr_time_from_beg = curr_time - begin_time
     threads = [None] * num_possible_orders_i
     times = [None] * num_possible_orders_i
     for i in range(num_possible_orders_i):
@@ -79,13 +86,15 @@ while(time.time() <= end_time):
 
     min_time = min(times)
 
-    print("Iteration %d, Limit Order Buy Time = %f, Limit Order Sell Time = %f, Minimum Time = %f, "
+    '''print("Iteration %d, Limit Order Buy Time = %f, Limit Order Sell Time = %f, Minimum Time = %f, "
           "Index of minimum time = %d"
-          % (k + 1, times[0], times[1], min_time, times.index(min_time)))
+          % (k + 1, times[0], times[1], min_time, times.index(min_time)))'''
     #now, pick a price based on whether or not it was buy or sell
     prices_range = np.ones(1) #only to initialize
     probability = np.ones(1) #only to initialize - uniform distribution
     buy_or_sell = times.index(min_time)
+    cancel_time = nextTime(order_cancellation_rate)
+    buy_sell = 1 #just an argument to pass to LimitOrder object (-1 is buy, +1 is sell)
     if (buy_or_sell == 0): #buy
         prices_range = np.arange(lowest_ask - 5, lowest_ask + dp, dp)
         prob = (float) (1.0 / len(prices_range))
@@ -94,19 +103,27 @@ while(time.time() <= end_time):
         highest_bid = max(prices_range)
         print("Highest Bid now = %f" % highest_bid)
         print("Lowest Ask now = %f" % lowest_ask)'''
+        #lo = LimitOrder(k + 1, -1, time.time() - begin_time, cancel_time, orders)
+        buy_sell = -1
+
     else: #sell
         prices_range = np.arange(highest_bid, highest_bid + 5 + dp, dp)
         prob = (float) (1.0 / len(prices_range))
         probability = np.full(len(prices_range), prob)
+
         '''print("Lowest Ask before = %f" % lowest_ask)
         lowest_ask = max(prices_range)
         print("Lowest Ask now = %f" % lowest_ask)
         print("Highest Bid now = %f" % highest_bid)'''
-    print(prices_range)
-    print(probability)
+    '''print(prices_range)
+    print(probability)'''
     distrib = rv_discrete(values=(prices_range, probability))
     price_picked = distrib.rvs(size=1)
-    print("Price Picked = %f" % price_picked)
+    '''print(price_picked)
+    print(price_picked[0])'''
+    lo = LimitOrder(id + 1, buy_sell, price_picked[0], time.time() - begin_time, cancel_time, orders) #make a limit order object
+    lob.add_limit_order(lo) #add the limit order to the limit order book
+    #print("Price Picked = %f" % price_picked)
     '''if (buy_or_sell == 0): #buy
         #check if the highest bid has changed
         if (price_picked > highest_bid): #if spread has changed due to highest bid changing
@@ -136,10 +153,12 @@ while(time.time() <= end_time):
     print("Spread before = %f" % spread)
     spread = lowest_ask - highest_bid
     print("Spread now = %f" % spread)'''
-
-    k = k + 1
+    curr_time = time.time()
+    #k = k + 1
+    id = id + 1 #for the next limit order's id
 print("At the end of steady state. Highest Bid = %f, Lowest Ask = %f, Spread = %f"
       % (highest_bid, lowest_ask, spread))
+lob.show_lob() #to see the contents
 j = 0
 while(j < 10):
     #now, spawn 4 threads each for market buy, market sell, limit buy, limit sell
