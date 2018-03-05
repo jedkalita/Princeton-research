@@ -82,10 +82,66 @@ while(time.time() <= end_time):
     print("Iteration %d, Limit Order Buy Time = %f, Limit Order Sell Time = %f, Minimum Time = %f, "
           "Index of minimum time = %d"
           % (k + 1, times[0], times[1], min_time, times.index(min_time)))
-    k = k + 1
+    #now, pick a price based on whether or not it was buy or sell
+    prices_range = np.ones(1) #only to initialize
+    probability = np.ones(1) #only to initialize - uniform distribution
+    buy_or_sell = times.index(min_time)
+    if (buy_or_sell == 0): #buy
+        prices_range = np.arange(lowest_ask - 5, lowest_ask + dp, dp)
+        prob = (float) (1.0 / len(prices_range))
+        probability = np.full(len(prices_range), prob)
+        '''print("Highest Bid before = %f" % highest_bid)
+        highest_bid = max(prices_range)
+        print("Highest Bid now = %f" % highest_bid)
+        print("Lowest Ask now = %f" % lowest_ask)'''
+    else: #sell
+        prices_range = np.arange(highest_bid, highest_bid + 5 + dp, dp)
+        prob = (float) (1.0 / len(prices_range))
+        probability = np.full(len(prices_range), prob)
+        '''print("Lowest Ask before = %f" % lowest_ask)
+        lowest_ask = max(prices_range)
+        print("Lowest Ask now = %f" % lowest_ask)
+        print("Highest Bid now = %f" % highest_bid)'''
+    print(prices_range)
+    print(probability)
+    distrib = rv_discrete(values=(prices_range, probability))
+    price_picked = distrib.rvs(size=1)
+    print("Price Picked = %f" % price_picked)
+    '''if (buy_or_sell == 0): #buy
+        #check if the highest bid has changed
+        if (price_picked > highest_bid): #if spread has changed due to highest bid changing
+            print("Highest bid has changed. Highest bid before = %f, Highest bid now = %f"
+                  % (highest_bid, price_picked))
+            highest_bid = price_picked
+            spread_new = lowest_ask - highest_bid
+            print("Spread will also change. Spread before = %f, Spread now = %f"
+                  %(spread, spread_new))
+            spread = spread_new
+        else: #spread remains the same
+            print("Spread and Highest Bid remain the same. Spread = %f, Highest Bid = %f"
+                  % (spread, highest_bid))
+    else: #sell
+        if (price_picked < lowest_ask):
+            print("Lowest Ask has changed. Lowest Ask before = %f, Lowest Ask now = %f"
+                  % (lowest_ask, price_picked))
+            lowest_ask = price_picked
+            spread_new = lowest_ask - highest_bid
+            print("Spread will also change. Spread before = %f, Spread now = %f"
+                  % (spread, spread_new))
+            spread = spread_new
+        else:  # spread remains the same
+            print("Spread and Lowest Ask remain the same. Spread = %f, Lowest Ask = %f"
+                  % (spread, lowest_ask))'''
+    '''print("Price Picked = %f" % price_picked)
+    print("Spread before = %f" % spread)
+    spread = lowest_ask - highest_bid
+    print("Spread now = %f" % spread)'''
 
+    k = k + 1
+print("At the end of steady state. Highest Bid = %f, Lowest Ask = %f, Spread = %f"
+      % (highest_bid, lowest_ask, spread))
 j = 0
-while(j <= 10):
+while(j < 10):
     #now, spawn 4 threads each for market buy, market sell, limit buy, limit sell
     #see which one has the lowest next time
     threads = [None] * num_possible_orders
