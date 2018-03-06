@@ -68,12 +68,13 @@ mid_spread = (lowest_ask + highest_bid) / 2
 #print(begin_time)
 end_time = begin_time + 20 #build initial LOB for 20 seconds
 num_possible_orders_i = 2
-#k = 0
+k = 0
 curr_time = time.time()
 curr_time_from_beg = curr_time - begin_time
 lob = LimitOrderBook()
 id = 0
-while(curr_time <= end_time):
+#while(curr_time <= end_time):
+while(k < 10):
     curr_time_from_beg = curr_time - begin_time
     threads = [None] * num_possible_orders_i
     times = [None] * num_possible_orders_i
@@ -154,8 +155,9 @@ while(curr_time <= end_time):
     spread = lowest_ask - highest_bid
     print("Spread now = %f" % spread)'''
     curr_time = time.time()
-    #k = k + 1
+    k = k + 1
     id = id + 1 #for the next limit order's id
+
 print("At the end of steady state. Highest Bid = %f, Lowest Ask = %f, Spread = %f"
       % (highest_bid, lowest_ask, spread))
 lob.show_lob() #to see the contents
@@ -173,10 +175,34 @@ while(j < 10):
         threads[i].join()
 
     min_time = min(times)
+    idx = times.index(min_time)
 
     print("Iteration %d, Market Order Buy Time = %f, Market Order Sell Time = %f, Limit Order Buy Time = %f, "
           "Limit Order Sell Time = %f, Minimum Time = %f, Index of minimum time = %d"
-          % (j + 1, times[0], times[1], times[2], times[3], min_time, times.index(min_time)))
+          % (j + 1, times[0], times[1], times[2], times[3], min_time, idx))
+
+    #now if it is a market order, then access the limit order book object, and extract the opposite
+    #side's market offer, and then change the highest bid and lowest ask, and thereby the spread value
+    #no synchronization needed here
+    if (idx == 0): #a market buy order was generated, then delete sell side
+        print("Previous highest bid = %f, Previous lowest ask = %f, Previous spread = %f"
+              %(highest_bid, lowest_ask, spread))
+        lob.del_limit_sell()
+        lowest_ask = lob.limit_sells[0][0] #lowest ask has changed
+        spread = lowest_ask - highest_bid
+        print("Current highest bid = %f, Current lowest ask = %f, Current spread = %f"
+              % (highest_bid, lowest_ask, spread))
+    elif (idx == 1): #a market sell order was generated, then delete buy side
+        print("Previous highest bid = %f, Previous lowest ask = %f, Previous spread = %f"
+              % (highest_bid, lowest_ask, spread))
+        lob.del_limit_buy()
+        highest_bid = lob.limit_buys[0][0] #highest bid has changed
+        spread = lowest_ask - highest_bid
+        print("Current highest bid = %f, Current lowest ask = %f, Current spread = %f"
+          % (highest_bid, lowest_ask, spread))
+
+
+    #now, if it is a limit order, then spawn a new thread and add this to the limit order book
 
 
     j = j + 1
