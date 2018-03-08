@@ -6,6 +6,7 @@ from limit_order import *
 import numpy as np
 from scipy.stats import rv_discrete
 import random
+import threading
 
 class LimitOrderBook:
     def __init__(self):
@@ -69,6 +70,9 @@ class LimitOrderBook:
         print(self.limit_sells)
         print("Total buy orders = %d, Total sell orders = %d" % (self.limit_buy_count, self.limit_sell_count))
 
+def poke_per_limitorder(lo, begin_time):
+    lo.poke(begin_time)
+
 
 if __name__ == "__main__":
     k = 0
@@ -84,18 +88,39 @@ if __name__ == "__main__":
         if (picked == -1): #a buy
             print("Trying to add a buy order")
             lo = LimitOrder(k + 1, int(picked), 102.25 + random.uniform(-3.0, 4.5),
-                            time.time() - begin_time, 4.56 + random.uniform(-2.0, 10.9), 3)
+                            time.time() - begin_time, 4.56 + random.uniform(-2.0, 10.9), 3, lob)
             lob.add_limit_order(lo)
         else: #a sell
             print("Trying to add a sell order")
             lo = LimitOrder(k + 1, int(picked), 104.5 + random.uniform(-3.0, 4.5), time.time() - begin_time,
-                            4.56 + random.uniform(-2.0, 10.9), 3)
+                            4.56 + random.uniform(-2.0, 10.9), 3, lob)
             lob.add_limit_order(lo)
+
+        t = threading.Thread(target=poke_per_limitorder, args=(lo, begin_time))
+        t.start()
+
         k = k + 1
+
+    '''distrib = rv_discrete(values=(vals, probability))
+    picked = distrib.rvs(size=1)
+    print("Picked = %d" % picked)
+    if (picked == -1):  # a buy
+        print("Trying to add a buy order")
+        lo = LimitOrder(k + 1, int(picked), 102.25 + random.uniform(-3.0, 4.5),
+                        time.time() - begin_time, 4.56 + random.uniform(-2.0, 10.9), 3, lob)
+        lob.add_limit_order(lo)
+    else:  # a sell
+        print("Trying to add a sell order")
+        lo = LimitOrder(k + 1, int(picked), 104.5 + random.uniform(-3.0, 4.5), time.time() - begin_time,
+                        4.56 + random.uniform(-2.0, 10.9), 3, lob)
+        lob.add_limit_order(lo)
+    t = threading.Thread(target=poke_per_limitorder, args=(lo, begin_time))
+    t.start()'''
+
     lob.show_lob()
-    lob.del_limit_buy()
+    '''lob.del_limit_buy()
     lob.del_limit_sell()
-    lob.show_lob()
+    lob.show_lob()'''
 
 
 
