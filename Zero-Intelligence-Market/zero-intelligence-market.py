@@ -97,7 +97,7 @@ while(curr_time <= end_time):
     cancel_time = nextTime(order_cancellation_rate)
     buy_sell = 1 #just an argument to pass to LimitOrder object (-1 is buy, +1 is sell)
     if (buy_or_sell == 0): #buy
-        prices_range = np.arange(lowest_ask - 5, lowest_ask + dp, dp)
+        prices_range = np.arange(highest_bid - 5, highest_bid + dp, dp)
         prob = (float) (1.0 / len(prices_range))
         probability = np.full(len(prices_range), prob)
         '''print("Highest Bid before = %f" % highest_bid)
@@ -108,7 +108,7 @@ while(curr_time <= end_time):
         buy_sell = -1
 
     else: #sell
-        prices_range = np.arange(highest_bid, highest_bid + 5 + dp, dp)
+        prices_range = np.arange(lowest_ask, lowest_ask + 5 + dp, dp)
         prob = (float) (1.0 / len(prices_range))
         probability = np.full(len(prices_range), prob)
 
