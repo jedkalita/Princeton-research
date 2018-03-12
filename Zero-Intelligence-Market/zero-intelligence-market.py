@@ -22,77 +22,7 @@ def nextTime_process(times, index, rateParameter):
     times[index] = -math.log(1.0 - random.random()) / rateParameter[index]
 
 
-def generate_next_order(time_started, next_time_to_start, idx, ret_lst):
-    while (time.time() - time_started < next_time_to_start):
-        i = 0
-    lowest_ask = 0.0
-    highest_bid = 0.0
-    if (idx == 0): #a market buy order was generated, then delete sell side
-        '''print("Previous highest bid = %f, Previous lowest ask = %f, Previous spread = %f"
-              %(highest_bid, lowest_ask, spread))'''
-        lob.del_limit_sell()
-        #lowest_ask = lob.limit_sells[0][0] #lowest ask has changed
-        lowest_ask = lob.get_lowest_ask()
-        highest_bid = lob.get_highest_bid()
-        spread = lowest_ask - highest_bid
-        '''print("Current highest bid = %f, Current lowest ask = %f, Current spread = %f"
-              % (highest_bid, lowest_ask, spread))'''
-    elif (idx == 1): #a market sell order was generated, then delete buy side
-        '''print("Previous highest bid = %f, Previous lowest ask = %f, Previous spread = %f"
-              % (highest_bid, lowest_ask, spread))'''
-        lob.del_limit_buy()
-        #highest_bid = lob.limit_buys[0][0] #highest bid has changed
-        lowest_ask = lob.get_lowest_ask()
-        highest_bid = lob.get_highest_bid()
-        spread = lowest_ask - highest_bid
-        '''print("Current highest bid = %f, Current lowest ask = %f, Current spread = %f"
-          % (highest_bid, lowest_ask, spread))'''
 
-
-
-    #now, if it is a limit order, add this to the limit order book
-    elif (idx == 2): #limit buy
-        lowest_ask = lob.get_lowest_ask() #the lowest ask currently
-        prices_range = np.arange(lowest_ask - 5, lowest_ask + dp, dp) #the price range
-        prob = (float)(1.0 / len(prices_range))
-        probability = np.full(len(prices_range), prob)
-        distrib = rv_discrete(values=(prices_range, probability))
-        price_picked = distrib.rvs(size=1) #pick a price from the range
-        lo = LimitOrder(id + 1, -1, price_picked[0], curr_time + min_time - begin_time,
-                        cancel_time, orders,
-                        lob)  # make a limit order object
-        lob.add_limit_order(lo)  # add the limit order to the limit order book
-
-        #spawn a new thread to check if this limit order has reached cancellation time
-        t = threading.Thread(target=poke_per_limitorder, args=(lo, curr_time + min_time))
-        t.start()
-
-        #check to see if the highest bid has changed due to this buy limit order
-        highest_bid = lob.get_highest_bid()
-
-
-    else: #limit sell
-        highest_bid = lob.get_highest_bid() #the highest bid currently
-        prices_range = np.arange(highest_bid, highest_bid + 5 + dp, dp) #the price range
-        prob = (float)(1.0 / len(prices_range))
-        probability = np.full(len(prices_range), prob)
-        distrib = rv_discrete(values=(prices_range, probability))
-        price_picked = distrib.rvs(size=1) #pick a price from the range
-        lo = LimitOrder(id + 1, 1, price_picked[0], curr_time + min_time - begin_time,
-                        cancel_time, orders,
-                        lob)  # make a limit order object
-        lob.add_limit_order(lo)  # add the limit order to the limit order book
-
-        # spawn a new thread to check if this limit order has reached cancellation time
-        t = threading.Thread(target=poke_per_limitorder, args=(lo, curr_time + min_time))
-        t.start()
-
-        # check to see if the lowest ask has changed due to this ask limit order
-        lowest_ask = lob.get_lowest_ask()
-
-    #ret_lst = ()
-    ret_lst.append(highest_bid)
-    ret_lst.append(lowest_ask)
 
 
 #print(nextTime(1/40.0))
@@ -235,6 +165,83 @@ while(curr_time <= end_time):
 print("At the end of steady state. Highest Bid = %f, Lowest Ask = %f, Spread = %f"
       % (highest_bid, lowest_ask, spread))
 lob.show_lob() #to see the contents
+
+
+
+def generate_next_order(time_started, next_time_to_start, idx, ret_lst):
+    while (time.time() - time_started < next_time_to_start):
+        i = 0
+    lowest_ask = 0.0
+    highest_bid = 0.0
+    if (idx == 0): #a market buy order was generated, then delete sell side
+        '''print("Previous highest bid = %f, Previous lowest ask = %f, Previous spread = %f"
+              %(highest_bid, lowest_ask, spread))'''
+        lob.del_limit_sell()
+        #lowest_ask = lob.limit_sells[0][0] #lowest ask has changed
+        lowest_ask = lob.get_lowest_ask()
+        highest_bid = lob.get_highest_bid()
+        spread = lowest_ask - highest_bid
+        '''print("Current highest bid = %f, Current lowest ask = %f, Current spread = %f"
+              % (highest_bid, lowest_ask, spread))'''
+    elif (idx == 1): #a market sell order was generated, then delete buy side
+        '''print("Previous highest bid = %f, Previous lowest ask = %f, Previous spread = %f"
+              % (highest_bid, lowest_ask, spread))'''
+        lob.del_limit_buy()
+        #highest_bid = lob.limit_buys[0][0] #highest bid has changed
+        lowest_ask = lob.get_lowest_ask()
+        highest_bid = lob.get_highest_bid()
+        spread = lowest_ask - highest_bid
+        '''print("Current highest bid = %f, Current lowest ask = %f, Current spread = %f"
+          % (highest_bid, lowest_ask, spread))'''
+
+
+
+    #now, if it is a limit order, add this to the limit order book
+    elif (idx == 2): #limit buy
+        lowest_ask = lob.get_lowest_ask() #the lowest ask currently
+        prices_range = np.arange(lowest_ask - 5, lowest_ask + dp, dp) #the price range
+        prob = (float)(1.0 / len(prices_range))
+        probability = np.full(len(prices_range), prob)
+        distrib = rv_discrete(values=(prices_range, probability))
+        price_picked = distrib.rvs(size=1) #pick a price from the range
+        lo = LimitOrder(id + 1, -1, price_picked[0], curr_time + min_time - begin_time,
+                        cancel_time, orders,
+                        lob)  # make a limit order object
+        lob.add_limit_order(lo)  # add the limit order to the limit order book
+
+        #spawn a new thread to check if this limit order has reached cancellation time
+        t = threading.Thread(target=poke_per_limitorder, args=(lo, curr_time + min_time))
+        t.start()
+
+        #check to see if the highest bid has changed due to this buy limit order
+        highest_bid = lob.get_highest_bid()
+
+
+    else: #limit sell
+        highest_bid = lob.get_highest_bid() #the highest bid currently
+        prices_range = np.arange(highest_bid, highest_bid + 5 + dp, dp) #the price range
+        prob = (float)(1.0 / len(prices_range))
+        probability = np.full(len(prices_range), prob)
+        distrib = rv_discrete(values=(prices_range, probability))
+        price_picked = distrib.rvs(size=1) #pick a price from the range
+        lo = LimitOrder(id + 1, 1, price_picked[0], curr_time + min_time - begin_time,
+                        cancel_time, orders,
+                        lob)  # make a limit order object
+        lob.add_limit_order(lo)  # add the limit order to the limit order book
+
+        # spawn a new thread to check if this limit order has reached cancellation time
+        t = threading.Thread(target=poke_per_limitorder, args=(lo, curr_time + min_time))
+        t.start()
+
+        # check to see if the lowest ask has changed due to this ask limit order
+        lowest_ask = lob.get_lowest_ask()
+
+    #ret_lst = ()
+    ret_lst.append(highest_bid)
+    ret_lst.append(lowest_ask)
+
+
+
 j = 0
 curr_time = time.time()
 
@@ -335,7 +342,7 @@ while(True):
     highest_bid = ret_lst[0]
     lowest_ask = ret_lst[1]
     if (lowest_ask == highest_bid or lowest_ask < highest_bid): #delete both lowest ask and highest bid indicating they have been fulfilled
-        #print("Matched limit buy with limit sell...")
+        print("Matched limit buy with limit sell...")
         lob.del_limit_buy()
         lob.del_limit_sell()
     #otherwise, no trade took place
