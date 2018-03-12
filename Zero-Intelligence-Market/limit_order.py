@@ -45,7 +45,7 @@ class LimitOrder:
             #print("Waiting... Value = %f" % (time.time() - begin_time))
         else: #sell
             self.lob.limit_sells = self.lob.limit_sells[~(self.lob.limit_sells[:, 2] == self.id), :]
-        print("Now coming out of poke...Will delete it in the limit order book")
+        #print("Now coming out of poke...Will delete it in the limit order book")
         #self.__del__()
 
 

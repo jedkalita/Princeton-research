@@ -186,25 +186,25 @@ while(True):
     #side's market offer, and then change the highest bid and lowest ask, and thereby the spread value
     #no synchronization needed here
     if (idx == 0): #a market buy order was generated, then delete sell side
-        print("Previous highest bid = %f, Previous lowest ask = %f, Previous spread = %f"
-              %(highest_bid, lowest_ask, spread))
+        '''print("Previous highest bid = %f, Previous lowest ask = %f, Previous spread = %f"
+              %(highest_bid, lowest_ask, spread))'''
         lob.del_limit_sell()
         #lowest_ask = lob.limit_sells[0][0] #lowest ask has changed
         lowest_ask = lob.get_lowest_ask()
         highest_bid = lob.get_highest_bid()
         spread = lowest_ask - highest_bid
-        print("Current highest bid = %f, Current lowest ask = %f, Current spread = %f"
-              % (highest_bid, lowest_ask, spread))
+        '''print("Current highest bid = %f, Current lowest ask = %f, Current spread = %f"
+              % (highest_bid, lowest_ask, spread))'''
     elif (idx == 1): #a market sell order was generated, then delete buy side
-        print("Previous highest bid = %f, Previous lowest ask = %f, Previous spread = %f"
-              % (highest_bid, lowest_ask, spread))
+        '''print("Previous highest bid = %f, Previous lowest ask = %f, Previous spread = %f"
+              % (highest_bid, lowest_ask, spread))'''
         lob.del_limit_buy()
         #highest_bid = lob.limit_buys[0][0] #highest bid has changed
         lowest_ask = lob.get_lowest_ask()
         highest_bid = lob.get_highest_bid()
         spread = lowest_ask - highest_bid
-        print("Current highest bid = %f, Current lowest ask = %f, Current spread = %f"
-          % (highest_bid, lowest_ask, spread))
+        '''print("Current highest bid = %f, Current lowest ask = %f, Current spread = %f"
+          % (highest_bid, lowest_ask, spread))'''
 
 
 
@@ -250,7 +250,7 @@ while(True):
 
     #now, that orders have been generated, we have to service limit order matchings
     if (lowest_ask == highest_bid or lowest_ask < highest_bid): #delete both lowest ask and highest bid indicating they have been fulfilled
-        print("Matched limit buy with limit sell...")
+        #print("Matched limit buy with limit sell...")
         lob.del_limit_buy()
         lob.del_limit_sell()
     #otherwise, no trade took place
