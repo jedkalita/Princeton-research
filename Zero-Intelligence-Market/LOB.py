@@ -63,6 +63,12 @@ class LimitOrderBook:
         '''print("Just deleted a limit sell order. Displaying the limit sells now...")
         print(self.limit_sells)'''
 
+    def get_highest_bid(self):
+        return self.limit_buys[0][0]
+
+    def get_lowest_ask(self):
+        return self.limit_sells[0][0]
+
     def show_lob(self): #show the characteristics of the limit order book - by definition will be showing depth
         print("Limit Buy Orders.....")
         print(self.limit_buys)
@@ -96,10 +102,12 @@ if __name__ == "__main__":
                             4.56 + random.uniform(-2.0, 10.9), 3, lob)
             lob.add_limit_order(lo)
 
-        t = threading.Thread(target=poke_per_limitorder, args=(lo, begin_time))
-        t.start()
+        '''t = threading.Thread(target=poke_per_limitorder, args=(lo, begin_time))
+        t.start()'''
 
         k = k + 1
+    print("Highest bid = %f" % lob.get_highest_bid())
+    print("Lowest ask = %f" % lob.get_lowest_ask())
 
     '''distrib = rv_discrete(values=(vals, probability))
     picked = distrib.rvs(size=1)
