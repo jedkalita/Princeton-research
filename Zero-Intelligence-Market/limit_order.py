@@ -26,12 +26,12 @@ class LimitOrder:
             print("Limit Sell Order id = %d, Order Size = %d, Price = %f, Time Began = %f, Cancellation Time = %f, End Time = %f"
                   % (self.id, self.order_size, self.price, self.time_began, self.cancellation_time, self.end_time))
 
-    def __del__(self):
+    '''def __del__(self):
         print("Now this limit order needs to be deleted.")
         if (self.buy_or_sell == -1):
             print("Deleted Limit Buy Order %d" % self.id)
         else:
-            print("Deleted Limit Sell Order %d" % self.id)
+            print("Deleted Limit Sell Order %d" % self.id)'''
 
     def poke(self, begin_time):
         '''print("Val = %f" % (time.time() - begin_time))
@@ -40,7 +40,11 @@ class LimitOrder:
             self.__del__()'''
         while(time.time() - begin_time <= self.end_time):
             i = 0
+        if self.buy_or_sell == -1: #a buy
+            self.lob.limit_buys = self.lob.limit_buys[~(self.lob.limit_buys[:, 2] == self.id), :]
             #print("Waiting... Value = %f" % (time.time() - begin_time))
+        else: #sell
+            self.lob.limit_sells = self.lob.limit_sells[~(self.lob.limit_sells[:, 2] == self.id), :]
         print("Now coming out of poke...Will delete it in the limit order book")
         #self.__del__()
 
@@ -49,7 +53,8 @@ class LimitOrder:
 if __name__ == "__main__":
     begin_time = time.time()
     lob = LimitOrderBook()
-    lo1 = LimitOrder(1, -1, 104.5, time.time() - begin_time, 4.56, 3, lob)
+    time_began = time.time()
+    lo1 = LimitOrder(1, -1, 104.5, time_began - begin_time, 4.56, 3, lob)
     lo1.show_characteristics()
     '''while(True):
         lo1.poke(begin_time)'''
@@ -59,7 +64,7 @@ if __name__ == "__main__":
         print(time.time() - begin_time)
         del lo1'''
     #lo1.show_characteristics()
-    lo1.poke(begin_time)
+    lo1.poke(time_began)
     #del lo1
 
 
