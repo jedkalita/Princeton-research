@@ -228,7 +228,7 @@ def generate_next_order(time_started, next_time_to_start, idx, ret_lst, lob):
         lob.add_limit_order(lo)  # add the limit order to the limit order book
 
         #spawn a new thread to check if this limit order has reached cancellation time
-        t = threading.Thread(target=poke_per_limitorder, args=(lo, curr_time + min_time))
+        t = multiprocessing.Process(target=poke_per_limitorder, args=(lo, curr_time + min_time))
         t.start()
 
         #check to see if the highest bid has changed due to this buy limit order
@@ -254,7 +254,7 @@ def generate_next_order(time_started, next_time_to_start, idx, ret_lst, lob):
         lob.add_limit_order(lo)  # add the limit order to the limit order book
 
         # spawn a new thread to check if this limit order has reached cancellation time
-        t = threading.Thread(target=poke_per_limitorder, args=(lo, curr_time + min_time))
+        t = multiprocessing.Process(target=poke_per_limitorder, args=(lo, curr_time + min_time))
         t.start()
 
         # check to see if the lowest ask has changed due to this ask limit order
@@ -274,9 +274,12 @@ j = 0
 curr_time = time.time()
 
 
-ret_lst = list()
+'''ret_lst = list()
 ret_lst.append(highest_bid)
-ret_lst.append(lowest_ask)
+ret_lst.append(lowest_ask)'''
+ret_lst = Array('d', range(2))
+ret_lst[0] = highest_bid
+ret_lst[1] = lowest_ask
 while(True):
 #while(j < 8):
     #now, spawn 4 threads each for market buy, market sell, limit buy, limit sell
@@ -301,7 +304,7 @@ while(True):
           % (j + 1, times[0], times[1], times[2], times[3], min_time, idx))
 
 
-    th = multiprocessing.Process(target=generate_next_order, args=(curr_time, min_time, idx, ret_lst, lob))
+    th = threading.Thread(target=generate_next_order, args=(curr_time, min_time, idx, ret_lst, lob))
     th.start()
     print("Waiting....Iteration %d" % (j + 1))
     th.join()
