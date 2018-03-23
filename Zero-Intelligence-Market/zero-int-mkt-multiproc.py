@@ -5,12 +5,17 @@ import threading
 import time
 import logging
 import random
-import matplotlib.pyplot as plt
 from limit_order import *
 #import joystick as jk
 from LOB import *
 import multiprocessing
 from multiprocessing import Process, Value, Array
+from Trader_class import *
+
+import matplotlib
+matplotlib.use('TKAgg')
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 
 s = np.random.poisson(5, 1000000)
 #print(s)
@@ -175,6 +180,9 @@ while(curr_time <= end_time):
     k = k + 1
     id = id + 1 #for the next limit order's id
 
+'''a = np.histogram(lob.limit_sells[:, 0], bins=np.arange(lowest_ask, lowest_ask + 5 + dp, dp))
+plt.hist(a)'''
+
 print("At the end of steady state. Highest Bid = %f, Lowest Ask = %f, Spread = %f"
       % (highest_bid, lowest_ask, spread))
 lob.show_lob() #to see the contents
@@ -280,10 +288,19 @@ ret_lst.append(lowest_ask)'''
 ret_lst = Array('d', range(2))
 ret_lst[0] = highest_bid
 ret_lst[1] = lowest_ask
+
+'''how_many_traders = 3
+
+traders_list = list()
+for i in range(how_many_traders):
+    new_trader = Trader(lob)
+    traders_list.append()'''
+
 while(True):
 #while(j < 8):
     #now, spawn 4 threads each for market buy, market sell, limit buy, limit sell
     #see which one has the lowest next time
+
     threads = [None] * num_possible_orders
     #times = [None] * num_possible_orders
     times = Array('d', range(num_possible_orders))
