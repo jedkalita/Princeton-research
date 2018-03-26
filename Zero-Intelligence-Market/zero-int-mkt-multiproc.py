@@ -296,6 +296,14 @@ for i in range(how_many_traders):
     new_trader = Trader(lob)
     traders_list.append()'''
 
+def poke_traders_for_orders(): #a function running in the background that will be adding external trader orders
+    print("Poke traders for orders")
+    while(True):
+        i = 0
+
+tr = multiprocessing.Process(target=poke_traders_for_orders)
+tr.start()
+
 while(True):
 #while(j < 8):
     #now, spawn 4 threads each for market buy, market sell, limit buy, limit sell
